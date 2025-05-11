@@ -1,0 +1,84 @@
+name: Setup JS Env
+description: |
+  Configures the CI environment for a JS project:
+  - checks out the current branch (with optional PAT override)
+  - detects & installs Node.js
+  - installs & caches dependencies
+
+inputs:
+  PAT_GITHUB_ACTIONS:
+    description: Personal access token for GitHub checkout (optional)
+    required: false
+    default: ""
+
+  ref:
+    description: Branch/ref to check out (defaults to the triggering ref)
+    required: false
+    default: ""
+
+  fetch-depth:
+    description: Checkout depth
+    required: false
+    default: "1"
+
+  submodules:
+    description: Whether to fetch submodules
+    required: false
+    default: "false"
+
+  node-version:
+    description: |
+      Version of Node.js to install.
+      Will auto-extract from package.json `engines.node` if present.
+    required: false
+    default: "lts/*"
+
+  package-manager:
+    description: Which package manager to cache (`npm`|`yarn`|`pnpm`)
+    required: false
+    default: "npm"
+
+  install-command:
+    description: Command to install dependencies
+    required: false
+    default: "npm ci --ignore-scripts"
+
+outputs:
+  node-version:
+    description: The resolved Node.js version
+    value: ${{ steps.node-version.outputs.version || inputs.node-version }}
+
+runs:
+  using: composite
+  steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      if: ${{ inputs.PAT_GITHUB_ACTIONS == '' }}
+      with:
+        ref: ${{ inputs.ref }}
+        fetch-depth: ${{ inputs.fetch-depth }}
+        submodules: ${{ inputs.submodules }}
+
+    - name: Checkout (with PAT)
+      uses: actions/checkout@v4
+      if: ${{ inputs.PAT_GITHUB_ACTIONS != '' }}
+      with:
+        token: ${{ inputs.PAT_GITHUB_ACTIONS }}
+        ref: ${{ inputs.ref }}
+        fetch-depth: ${{ inputs.fetch-depth }}
+        submodules: ${{ inputs.submodules }}
+
+    - name: Get Node version
+      id: node-version
+      run: echo "::set-output name=version::$(jq -r .engines.node package.json || echo '')"
+      shell: bash
+
+    - name: Setup Node
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ steps.node-version.outputs.version || inputs.node-version }}
+        cache: ${{ inputs.package-manager }}
+
+    - name: Install dependencies
+      run: ${{ inputs.install-command }}
+      shell: bash

@@ -1,0 +1,65 @@
+name: ✅ Lint & 🪞 Beauty Check
+
+on:
+  workflow_call:
+    secrets:
+      AWS_ACCESS_KEY:
+        description: AWS access key
+        required: true
+      AWS_SECRET_ACCESS_KEY:
+        description: AWS secret access key
+        required: true
+      IAM_ROLE_CI:
+        description: AWS IAM role for CI
+        required: true
+    inputs:
+      lint_command:
+        description: The command to run for linting. Defaults to `npx eslint "**/*.js" --ignore-path .gitignore`. This will respect your local eslint config and ignore anything defined in your .gitignore e.g. `node_modules`.
+        default: npx eslint "{0}" {1}
+        required: false
+        type: string
+      lint_globs:
+        description: A space separated list of file globs to pass to eslint for the files you want it to run over. Defaults to "**/*.js" ignored if you pass your own lint command.
+        default: '**/*.js'
+        required: false
+        type: string
+      lint_args:
+        description: Additional arguments to pass to eslint. Defaults to `--ignore-path .gitignore` ignored if you pass your own lint command.
+        default: --ignore-path .gitignore
+        required: false
+        type: string
+      prettier_command:
+        description: The command to run to check the code has been beautified. Defaults to `npx prettier "**/*.{js,css,md,yml,json}" --check --ignore-path .gitignore`. This will respect your local prettier config and ignore anything defined in your .gitignore e.g. `node_modules`.
+        default: npx prettier "{0}" --check {1}
+        required: false
+        type: string
+      prettier_globs:
+        description: Prettier file globs to pass for the files you want it to run over (see prettier CLI docs). Defaults to "**/*.{js,css,md,yml,json}" ignored if you pass your own prettier command.
+        default: '**/*.{js,css,md,yml,json}'
+        required: false
+        type: string
+      prettier_args:
+        description: Additional arguments to pass to prettier. Defaults to `--ignore-path .gitignore` ignored if you pass your own lint command.
+        default: --ignore-path .gitignore
+        required: false
+        type: string
+
+env:
+  lint_command: ${{ format(inputs.lint_command, inputs.lint_globs, inputs.lint_args) }}
+  prettier_command: ${{ format(inputs.prettier_command, inputs.prettier_globs, inputs.prettier_args) }}
+
+jobs:
+  checks:
+    name: Checks 🚦
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup Env
+        uses: fena-co/actions/composite/setup-js-env@develop
+        with:
+          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          IAM_ROLE_CI: ${{ secrets.IAM_ROLE_CI }}
+      - name: ✅ Lint
+        run: ${{ env.lint_command }}
+      - name: 🪞 Beauty Check
+        run: ${{ env.prettier_command }}

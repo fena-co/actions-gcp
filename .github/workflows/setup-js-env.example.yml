@@ -1,0 +1,28 @@
+name: Setup JS Env Composite Action Example
+
+on: workflow_dispatch
+
+jobs:
+  example-defaults:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: fena-co/actions/composite/setup-js-env@master
+
+  example-options:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: fena-co/actions/composite/setup-js-env@master
+        with:
+          ref: develop
+          fetch-depth: 0
+          submodules: true
+          node-version: 16
+          package-manager: yarn
+          install-command: yarn install
+
+  example-output-node-version:
+    runs-on: ubuntu-latest
+    steps:
+      - id: foo
+        uses: fena-co/actions/composite/setup-js-env@master
+      - run: echo node-version ${{ steps.foo.outputs.node-version }}
