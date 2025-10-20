@@ -4,10 +4,10 @@ on: workflow_dispatch
 
 jobs:
   example-defaults:
-    uses: fena-co/actions/.github/workflows/js-lint.yml@master
+    uses: fena-co/actions-gcp/.github/workflows/js-lint.yml@main
 
   example-custom-globs-args:
-    uses: fena-co/actions/.github/workflows/js-lint.yml@master
+    uses: fena-co/actions-gcp/.github/workflows/js-lint.yml@main
     with:
       lint_globs: src/**.js
       lint_args: --ignore-path .eslintignore
@@ -15,7 +15,7 @@ jobs:
       prettier_args: --ignore-path .prettierignore
 
   example-custom-command:
-    uses: fena-co/actions/.github/workflows/js-lint.yml@master
+    uses: fena-co/actions-gcp/.github/workflows/js-lint.yml@main
     with:
       lint_command: noop
       prettier_command: noop
