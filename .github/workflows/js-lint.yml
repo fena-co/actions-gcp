@@ -2,16 +2,6 @@ name: ✅ Lint & 🪞 Beauty Check
 
 on:
   workflow_call:
-    secrets:
-      AWS_ACCESS_KEY:
-        description: AWS access key
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        description: AWS secret access key
-        required: true
-      IAM_ROLE_CI:
-        description: AWS IAM role for CI
-        required: true
     inputs:
       lint_command:
         description: The command to run for linting. Defaults to `npx eslint "**/*.js" --ignore-path .gitignore`. This will respect your local eslint config and ignore anything defined in your .gitignore e.g. `node_modules`.
@@ -54,11 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup Env
-        uses: fena-co/actions/composite/setup-js-env@develop
-        with:
-          AWS_ACCESS_KEY: ${{ secrets.AWS_ACCESS_KEY }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          IAM_ROLE_CI: ${{ secrets.IAM_ROLE_CI }}
+        uses: fena-co/actions-gcp/composite/setup-js-env@main
       - name: ✅ Lint
         run: ${{ env.lint_command }}
       - name: 🪞 Beauty Check
